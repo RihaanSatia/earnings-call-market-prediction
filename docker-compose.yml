@@ -1,0 +1,27 @@
+services:
+  earnings-ml:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./notebooks:/app/notebooks
+      - ./reports:/app/reports
+    environment:
+      - PYTHONPATH=/app/src
+    command: /bin/bash -c "source /app/.venv/bin/activate && python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  jupyter:
+    build: .
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./:/app
+    environment:
+      - PYTHONPATH=/app/src
+    command: /bin/bash -c "source /app/.venv/bin/activate && jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --LabApp.token='' --LabApp.password=''"
+
+volumes:
+  data:
+  models:

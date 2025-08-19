@@ -1,0 +1,79 @@
+[project]
+name = "earnings-call-market-prediction"
+version = "0.1.0"
+description = "ML project to predict market reactions following earnings calls using NLP"
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.9"
+
+dependencies = [
+    # Core Data Science
+    "pandas>=2.0.0",
+    "numpy>=1.26.0",
+    "scikit-learn>=1.5.0",
+    
+    # ML Models
+    "lightgbm>=4.5.0",
+    "xgboost>=2.0.0",
+    
+    # NLP & Transformers
+    "transformers>=4.45.0",
+    "torch>=2.4.0",
+    "sentence-transformers>=3.0.0",
+    "datasets>=3.0.0",
+    
+    # Financial ML
+    "yfinance>=0.2.0",
+    "pandas-datareader>=0.10.0",
+    
+    # Visualization
+    "matplotlib>=3.8.0",
+    "seaborn>=0.13.0",
+    "plotly>=5.17.0",
+    
+    # Model Explainability
+    # "shap>=0.46.0",  # Temporarily disabled for Python 3.13 compatibility
+    
+    # API (Optional)
+    "fastapi>=0.110.0",
+    "uvicorn>=0.30.0",
+    "pydantic>=2.8.0",
+    
+    # Environment & Config
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "jupyter>=1.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+]
+
+llm = [
+    "openai>=0.27.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

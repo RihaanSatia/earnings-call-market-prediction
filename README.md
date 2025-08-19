@@ -29,13 +29,28 @@ This project aims to predict the probability of significant market reactions in 
 
 ## 🚀 Quick Start
 
-### Installation
+### Docker Setup (Recommended)
 
 ```bash
-# Clone the repository
 git clone github-personal:RihaanSatia/earnings-call-market-prediction.git
 cd earnings-call-market-prediction
+docker-compose up --build
+```
 
+Services:
+- **API**: http://localhost:8000
+- **API Documentation**: http://localhost:8000/docs  
+- **Jupyter Lab**: http://localhost:8888
+
+Individual services:
+```bash
+docker-compose up earnings-ml    
+docker-compose up jupyter       
+```
+
+### Manual Installation
+
+```bash
 # Create virtual environment
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
