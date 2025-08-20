@@ -16,15 +16,14 @@ This project aims to predict the probability of significant market reactions in 
 
 ## 📊 Dataset
 
-- **Primary**: Hugging Face `jlh-ibm/earnings_call` dataset (188 calls, 2016-2020)
-- **Optional Extensions**: Motley Fool, Finnhub API, Yahoo Finance (2021-2024)
+- **Primary**: Hugging Face `jlh-ibm/earnings_call` dataset (188 calls, 2016-2020), extended further.
 
 ## 🛠️ Technology Stack
 
 - **Data Processing**: Pandas, NumPy
 - **NLP**: Hugging Face Transformers (FinBERT), Sentence-Transformers
 - **Machine Learning**: scikit-learn, LightGBM, XGBoost
-- **Visualization**: Matplotlib, Seaborn, SHAP
+- **Visualization**: Matplotlib, Seaborn
 - **API**: FastAPI, Uvicorn
 
 ## 🚀 Quick Start

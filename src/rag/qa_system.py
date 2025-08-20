@@ -1,5 +1,6 @@
 from typing import List, Dict, Any, Optional
 from .vector_store import EarningsVectorStore
+from .smart_search import SmartSearchParser
 from utils.prompts import QA_SYSTEM_PROMPT, QA_USER_PROMPT
 import openai
 import os
@@ -14,6 +15,7 @@ class EarningsQASystem:
         self.vector_store = vector_store or EarningsVectorStore()
         self.use_openai = use_openai
         self.openai_model = openai_model
+        self.search_parser = SmartSearchParser()
         
         if use_openai:
             self.openai_client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -58,7 +60,6 @@ class EarningsQASystem:
     def generate_answer_openai(self, question: str, context: str) -> str:
         """Generate answer using OpenAI."""
         prompt = QA_USER_PROMPT.format(question=question, context=context)
-        
         try:
             response = self.openai_client.chat.completions.create(
                 model=self.openai_model,
@@ -76,17 +77,23 @@ class EarningsQASystem:
     
     def ask(self, 
             question: str,
-            company_filter: Optional[str] = None,
-            date_filter: Optional[str] = None,
             n_results: int = 5) -> Dict[str, Any]:
-        """Main QA interface."""
+        """Main QA interface with smart search parsing."""
         
-        search_results = self.retrieve_context(
-            question=question,
+        # Parse query using smart search
+        search_params = self.search_parser.parse_query(question)
+        enhanced_question = self.search_parser.enhance_query(question, search_params)
+        
+        # Create filters from parsed parameters
+        filters = self.search_parser.create_filters(search_params)
+        # Use filters for search - pass the complete filters dict to vector store
+        search_results = self.vector_store.search(
+            query=enhanced_question,
             n_results=n_results,
-            company_filter=company_filter,
-            date_filter=date_filter
+            filters=filters
         )
+        
+        print(f"Found {len(search_results)} chunks for query: {enhanced_question}")
         
         if not search_results:
             return {

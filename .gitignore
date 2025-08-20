@@ -92,3 +92,9 @@ config/secrets.yaml
 *.joblib
 *.h5
 *.hdf5
+
+# Vector stores and embeddings
+data/vector_store/
+*.faiss
+*.index
+*.chroma

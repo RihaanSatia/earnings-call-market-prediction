@@ -18,7 +18,7 @@ def main():
     
     print(f"Loaded {len(transcripts_df)} transcripts")
     
-    processor = TranscriptProcessor(chunk_size=1000, chunk_overlap=200)
+    processor = TranscriptProcessor(max_tokens=800, overlap_tokens=150)
     vector_store = EarningsVectorStore()
     
     vector_store.delete_all()
@@ -33,7 +33,7 @@ def main():
     print(f"\nVector store built successfully!")
     print(f"Total documents: {stats['total_documents']}")
     print(f"Companies: {stats['companies']}")
-    print(f"Embedding dimension: {stats['embedding_dimension']}")
+    print(f"Collection: {stats['collection_name']}")
 
 
 if __name__ == "__main__":

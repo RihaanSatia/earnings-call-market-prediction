@@ -2,12 +2,15 @@ import re
 from typing import List, Dict, Any
 from pathlib import Path
 import pandas as pd
+from datetime import datetime
+import tiktoken
 
 
 class TranscriptProcessor:
-    def __init__(self, chunk_size: int = 1000, chunk_overlap: int = 200):
-        self.chunk_size = chunk_size
-        self.chunk_overlap = chunk_overlap
+    def __init__(self, max_tokens: int = 1500, overlap_tokens: int = 300):
+        self.max_tokens = max_tokens
+        self.overlap_tokens = overlap_tokens
+        self.tokenizer = tiktoken.get_encoding("cl100k_base")  # GPT-3.5/4 tokenizer
     
     def clean_transcript(self, text: str) -> str:
         """Clean and normalize transcript text."""
@@ -55,42 +58,48 @@ class TranscriptProcessor:
         return sections
     
     def chunk_text(self, text: str, metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Split text into overlapping chunks with metadata."""
-        if len(text) <= self.chunk_size:
+        """Split text into overlapping chunks using efficient batch tokenization."""
+        # Tokenize the full text once
+        tokens = self.tokenizer.encode(text)
+        
+        # If text is small enough, return as single chunk
+        if len(tokens) <= self.max_tokens:
             return [{
                 'text': text,
                 'metadata': metadata,
                 'chunk_id': 0
             }]
         
-        chunks = []
-        start = 0
-        chunk_id = 0
+        # Calculate all chunk boundaries at once
+        chunk_starts = []
+        start_token = 0
+        while start_token < len(tokens):
+            chunk_starts.append(start_token)
+            start_token += (self.max_tokens - self.overlap_tokens)
         
-        while start < len(text):
-            end = start + self.chunk_size
-            
-            # Try to break at sentence boundary
-            if end < len(text):
-                sentence_end = text.rfind('.', start, end)
-                if sentence_end > start + self.chunk_size // 2:
-                    end = sentence_end + 1
-            
-            chunk_text = text[start:end].strip()
+        # Extract all chunk token sequences
+        chunk_token_lists = []
+        for i, start in enumerate(chunk_starts):
+            end = min(start + self.max_tokens, len(tokens))
+            chunk_token_lists.append(tokens[start:end])
+        
+        # Batch decode all chunks at once
+        chunk_texts = self.tokenizer.decode_batch(chunk_token_lists)
+        
+        # Build final chunk objects
+        chunks = []
+        for i, (chunk_text, chunk_tokens) in enumerate(zip(chunk_texts, chunk_token_lists)):
+            chunk_text = chunk_text.strip()
             if chunk_text:
                 chunks.append({
                     'text': chunk_text,
                     'metadata': {
                         **metadata,
-                        'chunk_id': chunk_id,
-                        'start_pos': start,
-                        'end_pos': end
+                        'chunk_id': i,
+                        'token_count': len(chunk_tokens)
                     },
-                    'chunk_id': chunk_id
+                    'chunk_id': i
                 })
-                chunk_id += 1
-            
-            start = end - self.chunk_overlap
         
         return chunks
     
@@ -111,9 +120,16 @@ class TranscriptProcessor:
         # Process each section
         for section_name, section_text in sections.items():
             if section_text and section_name != 'full':
+                # Convert date to timestamp for range filtering
+                try:
+                    date_timestamp = datetime.strptime(date, "%Y-%m-%d").timestamp()
+                except:
+                    date_timestamp = 0  # fallback
+                
                 base_metadata = {
                     'company': company,
                     'date': date,
+                    'date_timestamp': date_timestamp,
                     'section': section_name,
                     'doc_type': 'earnings_transcript'
                 }
